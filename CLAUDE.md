@@ -18,3 +18,4 @@ upstream mirror.
 
 - `guides/spawning-wsl-windows.md` — reliably launch `pi` in a new Windows terminal
   window from inside WSL2 (`Start-Process wsl.exe`).
+- `guides/extension-lifecycle-and-cleanup.md` — READ before writing/reviewing any pi extension's lifecycle code (`session_start`/`session_shutdown`, stashed `ctx`, timers, background processes). Recurring traps + required patterns: stale-ctx throws, replacement-aware shutdown latch, process-group teardown.
