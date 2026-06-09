@@ -1,96 +1,45 @@
 # Spawning a pi window from inside WSL2
 
-How to reliably launch a new **visible Windows terminal window** running a command
-(e.g. `pi`, or a spoke shell) from *inside* a WSL2 distro. Three launchers were
-tested; only one is recommended.
+LLM reference. Launch a visible Windows terminal window running a command (`pi`, a
+spoke shell) from inside a WSL2 distro. Tested on WSL2 Debian.
 
-## TL;DR
+## Use
 
-Use **PowerShell `Start-Process wsl.exe`**. Set the working directory with
-`wsl --cd` (launcher-independent). Avoid `wt.exe` for passing a command from WSL —
-it silently exits 0 while mangling the command.
+PowerShell `Start-Process wsl.exe`. Set cwd with `wsl --cd`. Never `wt.exe`.
 
 ```bash
-# Recommended
+# recommended
 powershell.exe -NoProfile -Command "Start-Process wsl.exe -ArgumentList '-d Debian --cd ~ -- bash -lic \"echo HELLO; sleep 30\"'"
-```
 
-```bash
-# Solid fallback (cmd) — note the mandatory empty "" title
+# fallback (avoids PowerShell) — the empty "" title is MANDATORY
 cmd.exe /c start "" wsl.exe -d Debian --cd ~ -- bash -lic 'echo HELLO; sleep 30'
 ```
 
-## Results
-
-Each candidate was launched from WSL2, running a `bash -lc` payload that writes a
-proof-marker file (capturing hostname/pwd) and then runs `echo HELLO; sleep N`.
-"Spawned?" means the marker file was actually written **and** a live process /
-visible window appeared.
-
-| # | Candidate | Exit 0? | Process actually spawned? | Verdict |
-|---|-----------|---------|---------------------------|---------|
-| 1 | `wt.exe -w 0 nt -p Debian wsl.exe …` | ✅ yes | ❌ no — marker never written | Unreliable / broken |
-| 2 | `cmd.exe /c start "" wsl.exe …` | ✅ yes | ✅ yes (visible console window, marker written) | Works, with sharp edges |
-| 3 | `powershell.exe -c Start-Process wsl.exe …` | ✅ yes | ✅ yes (visible window, marker written, correct pwd) | ✅ Best / recommended |
-
-## Why candidate 1 (`wt.exe`) fails
-
-Exit code is always 0, so it *looks* fine, but nothing useful runs. `wt.exe` splits
-the single command into separate junk tabs (`echo HELLO`, `sleep 30`, `sleep 120`)
-and throws `0x80070002` — "system cannot find the file specified." Two compounding
-causes:
-
-- `wt.exe` treats `;` on its own command line as a tab/pane delimiter, so
-  `echo HELLO; sleep 30` becomes multiple commands.
-- Invoked from a WSL shell, the inner `'…'` quoting is stripped by the launching WSL
-  process before `wt.exe` sees it, so `wt` re-tokenizes the bash script on
-  whitespace. Even a semicolon-free `&&` variant fails (marker still missing).
-
-It is fundamentally fragile for passing an arbitrary command from inside WSL.
-
-## Why candidate 2 (`cmd start`) works but is finicky
-
-- **Empty title is mandatory:** `start "" wsl.exe …`. `start "pi-window" wsl.exe …`
-  fails with "Windows cannot find 'pi-window'" — `start` consumes the first quoted
-  token as the program name. The `""` placeholder is required.
-- Prints `UNC paths are not supported. Defaulting to Windows directory.` because
-  `cmd` can't sit in a `\\wsl.localhost\…` cwd — the shell starts in
-  `/mnt/c/Windows` unless you set the directory explicitly.
-
-## Why candidate 3 (PowerShell) wins
-
-No title gotcha, no UNC warning. Launches a visible window, marker written with the
-correct working directory, live `sleep 120` confirmed in `ps`.
-
-## Setting the working directory
-
-Use `wsl.exe --cd <path>` — it is launcher-independent and sidesteps the `cmd` UNC
-problem entirely. It accepts a Linux path (`--cd ~/project`) or a Windows
-path, and `--cd ~` works for home. This is more reliable than `start /D` or
-PowerShell `-WorkingDirectory` (which want Windows paths). Verified: candidate 3
-reported `pwd=<project-dir>` correctly.
-
-## Launching pi
-
-Swap the payload for `pi`. Use an **interactive login shell** (`-lic`) so your PATH /
-nvm / shell init load and `pi` gets a proper TTY:
+Launch pi — use `bash -lic` (login+interactive: loads PATH/nvm, gives a real TTY):
 
 ```bash
-# Recommended
 powershell.exe -NoProfile -Command "Start-Process wsl.exe -ArgumentList '-d Debian --cd <project-dir> -- bash -lic pi'"
 ```
 
-- If `pi` isn't on PATH via your rc files, call it by full path
-  (e.g. `bash -lic '~/.bun/bin/pi'`).
-- To keep the window open after `pi` exits (for inspecting output), append
-  `exec bash`: `… -- bash -lic 'pi; exec bash'`.
+- `pi` not on PATH → call by full path: `bash -lic '~/.bun/bin/pi'`.
+- Keep window open after exit (to read output): `bash -lic 'pi; exec bash'`.
 
-## Bottom line
+## Working directory
 
-Use `powershell.exe -c Start-Process wsl.exe …` (candidate 3); fall back to
-`cmd /c start "" wsl.exe …` to avoid PowerShell. Avoid `wt.exe` for command-passing
-from WSL. Always set the directory with `wsl --cd`.
+Use `wsl.exe --cd <path>` — launcher-independent, accepts a Linux OR Windows path,
+`--cd ~` works. More reliable than `start /D` or PowerShell `-WorkingDirectory`
+(both want Windows paths). Without it, `cmd` can't sit in a `\\wsl.localhost\…` cwd
+and defaults to `/mnt/c/Windows` (the UNC warning).
 
----
+## Gotchas (verdicts: all three exit 0; only the spawn matters)
 
-*Validated on WSL2 Debian (trixie), launching into a Windows terminal host.*
+- **`wt.exe` — broken for command-passing from WSL.** Exits 0 but nothing useful
+  runs. It treats `;` as a tab/pane delimiter (splits `echo HELLO; sleep 30` into
+  junk tabs) and the launching WSL shell strips the inner quotes before `wt` sees
+  them, so it re-tokenizes the script on whitespace and throws `0x80070002`. Even a
+  `;`-free `&&` variant fails. Do not use.
+- **`cmd /c start` — works, finicky.** First quoted token is consumed as the program
+  name, so the empty `""` title placeholder is required (`start "pi-window" wsl…`
+  fails with "cannot find 'pi-window'"). Emits a UNC warning unless cwd is set.
+- **PowerShell `Start-Process` — best.** No title gotcha, no UNC warning, correct
+  cwd, visible window.
