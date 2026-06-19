@@ -3,8 +3,8 @@
 Pinned, manual-refresh snapshot (NOT a live mirror). Treat as source of truth for pi questions/customization. If a topic or API is absent here, don't conclude pi lacks it — it may be newer than this snapshot; say so and suggest a refresh.
 
 - **Source:** https://github.com/earendil-works/pi (`packages/coding-agent`)
-- **Commit:** `2edd6b432a4e1eed0a70270540d9a78d12aea7e9`
-- **Fetched:** 2026-06-09
+- **Commit:** `1287b69fe026a9c3f9cec8a220ad9405851f7dc3`
+- **Fetched:** 2026-06-20
 - **Paths:** `docs/` (28 md + `docs.json`), `examples-extensions/` (9 example projects + 67 single-file extensions)
 
 ## Refresh (only when the user explicitly asks)
