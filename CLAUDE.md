@@ -7,7 +7,9 @@
 A local pinned snapshot of pi's docs + example extensions lives in **`vendor/pi-docs/`**. Read/grep it to answer pi questions or customize pi.
 
 - `vendor/pi-docs/docs/` — all doc markdown (+ `docs.json` manifest)
-- `vendor/pi-docs/examples-extensions/` — example extensions, best reference for customization
+- `vendor/pi-docs/examples/extensions/` — example extensions, best reference for customization
+- `vendor/pi-docs/examples/sdk/`, `examples/rpc-*.ts` — SDK and RPC client examples
+- `vendor/pi-docs/src/`, `vendor/pi-docs/packages/` — upstream type sources (`src/core/extensions/types.ts`, `src/modes/rpc/rpc-types.ts`, `session-manager.ts`, …). Since pi 1.0 the docs are short guides; exact event/ctx/RPC/session shapes live **only** here
 - `vendor/pi-docs/FETCHED.md` — snapshot date/commit + how to refresh (refresh only when the user asks)
 
 ## Operational guides (ours)

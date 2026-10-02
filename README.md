@@ -5,8 +5,8 @@ Personal reference for **pi** — the minimal open-source terminal coding agent
 
 Two layers:
 
-- **`vendor/pi-docs/`** — a pinned snapshot of pi's upstream docs + example
-  extensions. Read/grep it to answer pi questions or customize pi. It's a manual
+- **`vendor/pi-docs/`** — a pinned snapshot of pi's upstream docs, examples, and
+  the source type files the docs defer to for exact API shapes. Read/grep it to answer pi questions or customize pi. It's a manual
   mirror, not live — see [`vendor/pi-docs/FETCHED.md`](vendor/pi-docs/FETCHED.md)
   for the pinned commit and fetch date.
 - **`guides/`** — our own hand-written runbooks for operating pi (not from
