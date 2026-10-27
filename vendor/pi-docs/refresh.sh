@@ -11,6 +11,7 @@ REPO="https://github.com/earendil-works/pi.git"
 SUB="packages/coding-agent"
 
 rm -rf "$CLONE"
+trap 'rm -rf "$CLONE"' EXIT
 git clone --depth 1 --filter=blob:none --sparse "$REPO" "$CLONE"
 # The docs are now guides that defer to source for exact API shapes (events, ctx,
 # RPC, session format) and link ../examples + ../src relative to docs/. Mirroring
@@ -23,7 +24,11 @@ SRC_FILES=(
   "$SUB/src/core/compaction/compaction.ts"
   "$SUB/src/core/compaction/branch-summarization.ts"
   "$SUB/src/core/compaction/utils.ts"
-  "$SUB/src/modes/interactive/theme/theme-schema.json"
+  # Config schemas moved out of src/ in 1.2.0 (generated into schemas/, published at pi.dev/schemas/*)
+  "$SUB/schemas/theme.schema.json"
+  "$SUB/schemas/settings.schema.json"
+  "$SUB/schemas/models.schema.json"
+  "$SUB/schemas/keybindings.schema.json"
 )
 OTHER_TYPES=(packages/ai/src/types.ts packages/agent/src/types.ts)
 git -C "$CLONE" sparse-checkout set --no-cone \
@@ -34,7 +39,7 @@ git -C "$CLONE" sparse-checkout set --no-cone \
 SHA="$(git -C "$CLONE" rev-parse HEAD)"
 TODAY="$(date +%F)"
 
-rm -rf "$DEST/docs" "$DEST/examples" "$DEST/src" "$DEST/packages"
+rm -rf "$DEST/docs" "$DEST/examples" "$DEST/src" "$DEST/packages" "$DEST/schemas"
 cp -r "$CLONE/$SUB/docs" "$DEST/docs"
 mkdir -p "$DEST/examples"
 cp -r "$CLONE/$SUB/examples/extensions" "$CLONE/$SUB/examples/sdk" "$CLONE/$SUB/examples/rpc-client.ts" "$CLONE/$SUB/examples/rpc-extension-ui.ts" "$DEST/examples/"
@@ -47,18 +52,17 @@ for f in "${OTHER_TYPES[@]}"; do
   mkdir -p "$DEST/$(dirname "$f")"
   cp "$CLONE/$f" "$DEST/$f"
 done
-rm -rf "$CLONE"
-
 # Recount the snapshot so the Paths line never goes stale.
 MD="$(find "$DEST/docs" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')"
 EX_DIRS="$(find "$DEST/examples/extensions" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ')"
 EX_TS="$(find "$DEST/examples/extensions" -maxdepth 1 -mindepth 1 -name '*.ts' | wc -l | tr -d ' ')"
 
-# Update the stamp in FETCHED.md (Commit + Fetched + Paths)
-sed -i -E \
+# Update the stamp in FETCHED.md (Commit + Fetched + Paths). Write-then-mv:
+# `sed -i` takes a mandatory suffix on BSD/macOS sed, so in-place isn't portable.
+sed -E \
   -e "s|^- \*\*Commit:\*\* .*|- **Commit:** \`$SHA\`|" \
   -e "s|^- \*\*Fetched:\*\* .*|- **Fetched:** $TODAY|" \
-  -e "s|^- \*\*Paths:\*\* .*|- **Paths:** \`docs/\` ($MD md + \`docs.json\`), \`examples/extensions/\` ($EX_DIRS example projects + $EX_TS single-file extensions), \`examples/sdk/\` + RPC clients, \`src/\` + \`packages/\` (upstream type sources the docs link to)|" \
-  "$DEST/FETCHED.md"
+  -e "s|^- \*\*Paths:\*\* .*|- **Paths:** \`docs/\` ($MD md + \`docs.json\`), \`examples/extensions/\` ($EX_DIRS example projects + $EX_TS single-file extensions), \`examples/sdk/\` + RPC clients, \`src/\` + \`packages/\` (upstream type sources the docs link to), \`schemas/\` (generated config schemas)|" \
+  "$DEST/FETCHED.md" > "$DEST/FETCHED.md.tmp" && mv "$DEST/FETCHED.md.tmp" "$DEST/FETCHED.md"
 
 echo "pi docs snapshot refreshed → commit $SHA ($TODAY)"
