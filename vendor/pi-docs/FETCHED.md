@@ -9,4 +9,4 @@ Pinned, manual-refresh snapshot (NOT a live mirror). Treat as source of truth fo
 
 ## Refresh (only when the user explicitly asks)
 
-Run `vendor/pi-docs/refresh.sh` — it re-clones upstream, overwrites the snapshot, and auto-updates **Commit** + **Fetched** above.
+Run `vendor/pi-docs/refresh.sh` — it re-clones upstream, overwrites the snapshot, and auto-updates **Commit**, **Fetched** and **Paths** above.

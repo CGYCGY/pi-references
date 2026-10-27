@@ -9,7 +9,7 @@ A local pinned snapshot of pi's docs + example extensions lives in **`vendor/pi-
 - `vendor/pi-docs/docs/` — all doc markdown (+ `docs.json` manifest)
 - `vendor/pi-docs/examples/extensions/` — example extensions, best reference for customization
 - `vendor/pi-docs/examples/sdk/`, `examples/rpc-*.ts` — SDK and RPC client examples
-- `vendor/pi-docs/src/`, `vendor/pi-docs/packages/` — upstream type sources (`src/core/extensions/types.ts`, `src/modes/rpc/rpc-types.ts`, `session-manager.ts`, …). Since pi 1.0 the docs are short guides; exact event/ctx/RPC/session shapes live **only** here
+- `vendor/pi-docs/src/`, `vendor/pi-docs/packages/` — upstream type sources (`src/core/extensions/types.ts`, `src/modes/rpc/rpc-types.ts`, `session-manager.ts`, …). Since pi 1.0 the docs are short guides; these `src/` types are authoritative for event/ctx shapes. Reference docs: RPC commands `docs/rpc-commands.md` + `docs/rpc-extension-ui.md`; session file `docs/session-format.md`; JSON/RPC event stream `docs/json.md`; messages `docs/message-types.md`
 - `vendor/pi-docs/schemas/` — generated JSON schemas for `settings.json`, `models.json`, `keybindings.json`, themes (the files behind `https://pi.dev/schemas/*`)
 - `vendor/pi-docs/FETCHED.md` — snapshot date/commit + how to refresh (refresh only when the user asks)
 
